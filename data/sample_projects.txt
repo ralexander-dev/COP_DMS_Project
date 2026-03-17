@@ -8,3 +8,13 @@ something_odd||why, testing
 something_unordinary|also|testing
 something_unexpected|also for|testing
 one_more_thing|for testing|
+something_else|also for testing|testing
+something_new||testing
+something_strange|also for testing|testing
+something_unusual||nonya
+important_item|this is important|important, testing
+random_item|this is random|random, testing
+unusual_item|this is unusual|unusual, testing
+sample_1|this is a sample item|sample, testing
+sample_2|this is another sample item|sample, testing
+sample_3|this is yet another sample item|sample
