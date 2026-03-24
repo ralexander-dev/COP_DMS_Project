@@ -270,6 +270,11 @@ public class ProjectController {
         }
       }
     }
+
+    if (validTags.isEmpty() && !newTags.isBlank()) { // if there were tags entered but all were invalid, display error and return
+      view.displayError("No valid tags entered. Please try again.");
+      return false;
+    } 
     selectedProject.setTags(validTags); // set tags on tmp project to validated tags
 
     view.displayInfo("Project tags updated successfully.");
