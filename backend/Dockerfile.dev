@@ -1,0 +1,19 @@
+FROM eclipse-temurin:25-jdk
+
+# Install Maven
+RUN apt-get update && \
+    apt-get install -y maven curl && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Pre-download dependencies into the image layer so the first container start is fast.
+# The source volume mount happens at runtime; only pom.xml is needed here.
+COPY pom.xml ./
+RUN mvn dependency:go-offline -q
+
+EXPOSE 8080
+
+# Source is mounted as a volume at runtime (see docker-compose.yml).
+# Maven's local repo is a named volume so dependencies persist between restarts.
+CMD ["mvn", "spring-boot:run"]

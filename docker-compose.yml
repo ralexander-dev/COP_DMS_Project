@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      # Persist Maven local repo so dependencies aren't re-downloaded on every restart
+      - maven_cache:/root/.m2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/projects"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app
+      # Keep node_modules and .next inside the container — don't let the host mount override them
+      - /app/node_modules
+      - /app/.next
+    environment:
+      # Used by client components (fetch runs in the browser - must point at the host port)
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      # Used by server components (fetch runs inside this container - use the Docker service name)
+      - API_URL=http://backend:8080
+      # Enable filesystem polling so Next.js HMR works on macOS Docker volume mounts
+      - WATCHPACK_POLLING=true
+      - NEXT_TELEMETRY_DISABLED=1
+
+volumes:
+  maven_cache:
