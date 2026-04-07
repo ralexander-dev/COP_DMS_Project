@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import repository.ProjectRepository; 
 
 /*
   ProjectService.java
@@ -22,33 +23,35 @@ import java.io.InputStreamReader;
 */
 @Service
 public class ProjectService {
-  private List<Project> projects = new ArrayList<>();
+  //private List<Project> projects = new ArrayList<>();
+  //private int nextId = 1;
   private Validator validator = new Validator();
-  private int nextId = 1;
+  private final ProjectRepository projectRepository; // repository for DB access
+
+  // constructor injection of ProjectRepository
+  public ProjectService(ProjectRepository projectRepository) {
+    this.projectRepository = projectRepository;
+  }
 
   // get all projects
   public List<Project> getAllProjects() {
-    return projects;
+    return projectRepository.findAll();
   }
 
   // get project by ID; throws ProjectNotFoundException if not found
   public Project getProjectById(int id) {
-    return projects.stream()
-      .filter(p -> p.getId() == id)
-      .findFirst()
+    return projectRepository.findById(id)
       .orElseThrow(() -> new ProjectNotFoundException("Project not found with ID: " + id));
   }
 
   // add project; throws ValidationException if title is invalid
   public Project addProject(String title) {
     Project project = new Project(title);
-    project.setId(nextId);
-    if (!validator.isValidTitle(project, projects)) {
+    //project.setId(nextId);
+    if (!validator.isValidTitle(project, getAllProjects())) {
       throw new ValidationException("Invalid or duplicate title: " + title);
     }
-    projects.add(project);
-    nextId++;
-    return project;
+    return projectRepository.save(project); // save to DB
   }
 
   // Import Projects (InputStream input)
@@ -69,8 +72,8 @@ public class ProjectService {
         String tagsStr = parts.length > 2 ? parts[2].trim() : "";
 
         Project project = new Project(title);
-        project.setId(nextId);
-        if (!validator.isValidTitle(project, projects)) {
+        //project.setId(nextId);
+        if (!validator.isValidTitle(project, getAllProjects())) {
           SkippedEntry se = new SkippedEntry();
           se.entry = line;
           se.reason = "Invalid or duplicate title";
@@ -98,8 +101,7 @@ public class ProjectService {
         }
         project.setTags(validTags);
 
-        projects.add(project);
-        nextId++;
+        projectRepository.save(project); // save to DB
         importedCount++;
       }
     }
@@ -115,11 +117,11 @@ public class ProjectService {
     Project project = getProjectById(id);
     String oldTitle = project.getTitle();
     project.setTitle(title);
-    if (!validator.isValidTitleEntry(title) || !validator.isUniqueTitle(project, projects)) {
+    if (!validator.isValidTitleEntry(title) || !validator.isUniqueTitle(project, projectRepository.findAll())) {
       project.setTitle(oldTitle);
       throw new ValidationException("Invalid or duplicate title: " + title);
     }
-    return project;
+    return projectRepository.update(project);
   }
 
   // update project description; throws ProjectNotFoundException or ValidationException
@@ -131,7 +133,7 @@ public class ProjectService {
       project.setDescription(oldDescription);
       throw new ValidationException("Description exceeds maximum allowed length");
     }
-    return project;
+    return projectRepository.update(project);
   }
 
   // update project tags from a comma-separated string; throws ProjectNotFoundException or ValidationException
@@ -148,14 +150,14 @@ public class ProjectService {
       throw new ValidationException("No valid tags provided");
     }
     project.setTags(validTags);
-    return project;
+    return projectRepository.update(project);
   }
 
   // toggle archived state; throws ProjectNotFoundException
   public Project toggleArchive(int id) {
     Project project = getProjectById(id);
     project.setArchived(!project.isArchived());
-    return project;
+    return projectRepository.update(project);
   }
 
   // soft-delete project; throws ProjectNotFoundException or InvalidOperationException
@@ -165,7 +167,7 @@ public class ProjectService {
       throw new InvalidOperationException("Project is already deleted");
     }
     project.setDeleted(true);
-    return project;
+    return projectRepository.update(project);
   }
 
   // restore a soft-deleted project; throws ProjectNotFoundException or InvalidOperationException
@@ -175,6 +177,6 @@ public class ProjectService {
       throw new InvalidOperationException("Project is not deleted");
     }
     project.setDeleted(false);
-    return project;
+    return projectRepository.update(project);
   }
 }

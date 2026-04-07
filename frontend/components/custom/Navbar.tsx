@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import ThemeToggle from "@/components/custom/ThemeToggle";
+import Logout from "@/components/custom/Logout";
 
 const links = [
   { label: "Home", href: "/" },
 ];
 
 // Navigation bar used across the entire application for consistent navigation and theme toggling. 
-export default function Navbar() {
+export default function Navbar({ isConnected }: { isConnected: boolean }) {
   return (
     <header className="w-full border-b bg-background">
       <div className="mx-auto flex h-12 max-w-5xl items-center gap-6 px-4">
@@ -26,7 +27,8 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          {isConnected && <Logout />}
           <ThemeToggle />
         </div>
       </div>

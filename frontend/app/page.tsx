@@ -5,6 +5,8 @@
 */
 import { Project } from "@/lib/types"; // import Project type definition
 import ProjectsTable from "@/components/custom/ProjectsTable"; // import custom ProjectsTable component
+import { DbStatus } from "@/lib/types"; // import DbStatus type definition
+import DbSetupPage from "@/app/DbSetupPage"; // import DatabaseSetupPage component
 
 // API_URL is used server-side (container-to-container via Docker service name).
 // Falls back to NEXT_PUBLIC_API_URL for local development (i.e., when using 'npm run dev' directly)
@@ -23,10 +25,27 @@ async function getProjects(): Promise<Project[]> {
   return res.json();
 }
 
-export default async function DashboardPage() {
-  const projects = await getProjects(); // fetch projects before rendering the page
+async function checkDbConnection(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API}/api/db/status`, { cache: "no-store" });
+    if (!res.ok) return false; // if response not OK, assume not connected
+    const data: DbStatus = await res.json();
+    return data.connected; // return the 'connected' status from the response
+  } catch {
+    return false; // if fetch fails (e.g., server not reachable), assume not connected
+  }
+}
 
-  // render dashboard page
+export default async function DashboardPage() {
+  const dbConnected = await checkDbConnection(); // check database connection before rendering the page
+
+  // if not connected, render the DbSetupPage
+  if (!dbConnected) {
+    return <DbSetupPage />;
+  }
+
+  const projects = await getProjects(); // fetch projects only when connected
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <div className="mb-6">

@@ -28,6 +28,19 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
+    <!-- Spring JDBC + HikariCP -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <!-- MySQL JDBC Driver (runtime only) -->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
     <!-- JUnit 5 -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>

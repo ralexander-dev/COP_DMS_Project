@@ -1,21 +1,43 @@
 services:
+  # Containerized MySQL database with init script
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: password 
+      MYSQL_DATABASE: dms_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # mount init.sql to create db and tables if not already created
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    # healthcheck to ensure MySQL is ready before backend tries to connect
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  # Java Spring Boot backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
       - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       # Persist Maven local repo so dependencies aren't re-downloaded on every restart
       - maven_cache:/root/.m2
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/projects"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/db/status"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
-
+  # Next.js frontend
   frontend:
     build:
       context: ./frontend
@@ -24,6 +46,8 @@ services:
       - "3000:3000"
     depends_on:
       backend:
+        condition: service_healthy
+      mysql:
         condition: service_healthy
     volumes:
       - ./frontend:/app
@@ -41,3 +65,4 @@ services:
 
 volumes:
   maven_cache:
+  mysql_data:

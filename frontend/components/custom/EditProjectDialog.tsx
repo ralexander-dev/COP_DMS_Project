@@ -82,62 +82,70 @@ export default function EditProjectDialog({
       return;
     }
 
-    // if validation passes, send update requests to the server
+    // if validation passes, send update requests to the server sequentially
     setSaving(true);
     try {
-      const calls: Promise<Response>[] = []; // request container for update calls
+      let finalProject: Project = project;
+      let anyFailed = false;
 
-      // if title has changed, push title update request to calls array
+      // update title first if changed
       if (trimmedTitle !== project.title) {
-        calls.push(
-          fetch(`${API}/api/projects/${project.id}/title`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: trimmedTitle }),
-          })
-        );
+        const res = await fetch(`${API}/api/projects/${project.id}/title`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: trimmedTitle }),
+        });
+        if (res.ok) {
+          finalProject = await res.json();
+        } else {
+          anyFailed = true;
+        }
       }
 
-      // if tags have changed, push tags update request to calls array
+      // update tags next (skip if empty — backend requires at least one valid tag)
       const newTagsStr = tagTokens.join(",");
       const oldTagsStr = (project.tags ?? []).join(",");
-      if (newTagsStr !== oldTagsStr) {
-        calls.push(
-          fetch(`${API}/api/projects/${project.id}/tags`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tags: newTagsStr }),
-          })
-        );
+      if (tagTokens.length > 0 && newTagsStr !== oldTagsStr) {
+        const res = await fetch(`${API}/api/projects/${project.id}/tags`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: newTagsStr }),
+        });
+        if (res.ok) {
+          finalProject = await res.json();
+        } else {
+          anyFailed = true;
+        }
       }
 
-      // if description has changed, push description update request to calls array
+      // update description last so all prior changes are already persisted
       const oldDesc = project.description ?? "";
       if (editDescription !== oldDesc) {
-        calls.push(
-          fetch(`${API}/api/projects/${project.id}/description`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ description: editDescription }),
-          })
-        );
+        const res = await fetch(`${API}/api/projects/${project.id}/description`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: editDescription }),
+        });
+        if (res.ok) {
+          finalProject = await res.json();
+        } else {
+          anyFailed = true;
+        }
       }
 
-      // if no updates, close the dialog and return
-      if (calls.length === 0) {
+      // if nothing changed, just close
+      if (finalProject === project && !anyFailed) {
         onClose();
         return;
       }
 
-      // execute all update requests in parallel and check for any failures
-      const responses = await Promise.all(calls);
-      if (responses.some((r) => !r.ok)) throw new Error();
-
-      // if all updates succeed fetch the updated project data from the last update
-      const updated: Project = await responses[responses.length - 1].json();
-      onProjectUpdate(updated);
+      onProjectUpdate(finalProject);
       onClose();
-      toast.success("Project updated.");
+      if (anyFailed) {
+        toast.warning("Some changes could not be saved.");
+      } else {
+        toast.success("Project updated.");
+      }
     } catch {
       toast.error("Failed to save changes.");
     } finally {

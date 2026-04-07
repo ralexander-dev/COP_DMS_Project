@@ -25,12 +25,27 @@ export const metadata: Metadata = {
   description: "Database Management System",
 };
 
+const API = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+async function getIsConnected(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API}/api/db/status`, { cache: "no-store" });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data?.connected === true;
+  } catch {
+    return false;
+  }
+}
+
 // RootLayout
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isConnected = await getIsConnected();
+
   return (
     <html
       lang="en"
@@ -42,7 +57,7 @@ export default function RootLayout({
           ThemeProvider manages light/dark mode theme accross the application.
         */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Navbar />
+          <Navbar isConnected={isConnected} />
           <main className="flex-1">{children}</main>
           {/*
             Toaster is used for showing notifications across the app (for client-side success/error messages).

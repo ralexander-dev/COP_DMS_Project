@@ -88,47 +88,41 @@ export default function NewProjectDialog({ open, onClose, onProjectCreated }: Pr
 
       const newProject: Project = await postRes.json(); // new project returned from the server with generated ID
 
-      const puts: Promise<Response>[] = []; // array to hold PUT requests for tags and description
+      let finalProject: Project = newProject;
+      let anyFailed = false;
 
-      // if tags are provided, add PUT request to update the project's tags
+      // update tags sequentially first so the description PUT reads the already-saved tags
       if (tagTokens.length > 0) {
-        puts.push(
-          fetch(`${API}/api/projects/${newProject.id}/tags`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tags: tagTokens.join(",") }),
-          })
-        );
+        const res = await fetch(`${API}/api/projects/${newProject.id}/tags`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: tagTokens.join(",") }),
+        });
+        if (res.ok) {
+          finalProject = await res.json();
+        } else {
+          anyFailed = true;
+        }
       }
-      // if description is provided, add PUT request to update the project's description
+
+      // update description after tags so both fields are preserved
       if (description.trim()) {
-        puts.push(
-          fetch(`${API}/api/projects/${newProject.id}/description`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ description }),
-          })
-        );
+        const res = await fetch(`${API}/api/projects/${newProject.id}/description`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description }),
+        });
+        if (res.ok) {
+          finalProject = await res.json();
+        } else {
+          anyFailed = true;
+        }
       }
-
-      // if there are no tags or description to update, return early with success msg
-      if (puts.length === 0) {
-        onProjectCreated(newProject);
-        onClose();
-        toast.success("Project created.");
-        return;
-      }
-
-      // send the PUT requests for tags and description in parallel and check for any failures
-      const putResponses = await Promise.all(puts);
-      const failedPuts = putResponses.filter((r) => !r.ok);
-      const lastOk = putResponses.filter((r) => r.ok).at(-1);
-      const finalProject: Project = lastOk ? await lastOk.json() : newProject;
 
       onProjectCreated(finalProject);
       onClose();
 
-      if (failedPuts.length > 0) {
+      if (anyFailed) {
         toast.warning("Project created, but tags/description could not be saved.");
       } else {
         toast.success("Project created.");

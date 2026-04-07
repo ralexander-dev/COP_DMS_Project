@@ -18,6 +18,17 @@ export interface ImportResult {
   skippedEntries: SkippedEntry[];
 }
 
+export interface DbConnectRequest {
+  username: string;
+  password: string;
+  host?: string;
+  port?: number;
+}
+
+export interface DbStatus {
+  connected: boolean;
+}
+
 export interface AddProjectRequest { title: string; }
 export interface UpdateTitleRequest { title: string; }
 export interface UpdateDescriptionRequest { description: string; }

@@ -3,6 +3,7 @@ import { Project } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -23,6 +24,9 @@ export default function ProjectDetailsDialog({ project, onClose }: Props) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Project Details</DialogTitle>
+          <DialogDescription className="sr-only">
+            View details for this project.
+          </DialogDescription>
         </DialogHeader>
 
         {project && (
