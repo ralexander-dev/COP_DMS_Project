@@ -8,25 +8,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
+
+/** 
+  * Controller for handling database connection related API routes. 
+  * Depends on {@link DatabaseConnectionService} for managing the actual connection logic and status.
+  * @author Russell Alexander
+*/
 @RestController
 @RequestMapping("/api/db")
 public class DatabaseController {
   
   private final DatabaseConnectionService dbService; // service for managing DB connection
 
-  // constructor injection of DatabaseConnectionService
+  /**
+   * Constructor to initialize the DatabaseController with a DatabaseConnectionService instance.
+   * @param dbService The DatabaseConnectionService instance to be injected.
+   */
   public DatabaseController(DatabaseConnectionService dbService) {
     this.dbService = dbService;
   }
 
-  // GET /api/db/status - check if connected
+  /**
+   * Retrieves the current status of the database connection.
+   * @return ResponseEntity containing the database connection status.
+  */
   @GetMapping("/status")
   public ResponseEntity<DbStatus> getDbStatus() {
     boolean isConnected = dbService.isConnected();
     return ResponseEntity.ok(new DbStatus(isConnected));
   }
 
-  // POST /api/db/connect - connect to db with provided creds
+  /**
+   * Connects to the database using the provided credentials.
+   * @param request The database connection request containing username, password, host, and port.
+   * @return ResponseEntity indicating the result of the connection attempt.
+  */
   @PostMapping("/connect")
   public ResponseEntity<?> connect(@RequestBody DbConnectRequest request) {
     try {
@@ -38,7 +54,10 @@ public class DatabaseController {
     }
   }
 
-  // POST /api/db/disconnect - disconnect from db
+  /**
+   * Disconnects from the database.
+   * @return ResponseEntity indicating that the disconnection was successful.
+  */
   @PostMapping("/disconnect")
   public ResponseEntity<?> disconnect() {
     dbService.disconnect();

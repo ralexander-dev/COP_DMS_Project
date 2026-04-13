@@ -1,5 +1,4 @@
 package service;
-
 import dto.ImportResult;
 import dto.SkippedEntry;
 import exception.InvalidOperationException;
@@ -16,10 +15,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import repository.ProjectRepository; 
 
-/*
-  ProjectService.java
-  Author: Russell Alexander
-  This class contains the business logic for the DMS application when accessed via web UI.
+/**
+ * Service for handling business logic related to Projects. 
+ * Depends on {@link ProjectRepository} for db access and {@link Validator} for validating inputs.
+ * @author Russell Alexander
 */
 @Service
 public class ProjectService {
@@ -28,24 +27,40 @@ public class ProjectService {
   private Validator validator = new Validator();
   private final ProjectRepository projectRepository; // repository for DB access
 
-  // constructor injection of ProjectRepository
+  /**
+   * Constructor, initializes the ProjectRepository for database access.
+   * @param projectRepository The ProjectRepository for database operations.
+  */
   public ProjectService(ProjectRepository projectRepository) {
     this.projectRepository = projectRepository;
   }
 
-  // get all projects
+  /**
+   * Get all projects from the database.
+   * @return A list of all projects.
+  */
   public List<Project> getAllProjects() {
     return projectRepository.findAll();
   }
 
-  // get project by ID; throws ProjectNotFoundException if not found
-  public Project getProjectById(int id) {
+  /**
+   * Get a project by its ID.
+   * @param id The ID of the project to retrieve.
+   * @return The project with the specified ID.
+   * @throws ProjectNotFoundException if no project with the given ID exists.
+  */
+  public Project getProjectById(int id) throws ProjectNotFoundException {
     return projectRepository.findById(id)
       .orElseThrow(() -> new ProjectNotFoundException("Project not found with ID: " + id));
   }
 
-  // add project; throws ValidationException if title is invalid
-  public Project addProject(String title) {
+  /**
+   * Validate new project and pass to {@link ProjectRepository} to save to db
+   * @param title The title of the project.
+   * @return The newly added project.
+   * @throws ValidationException if the title is invalid or duplicate.
+  */
+  public Project addProject(String title) throws ValidationException {
     Project project = new Project(title);
     //project.setId(nextId);
     if (!validator.isValidTitle(project, getAllProjects())) {
@@ -54,7 +69,12 @@ public class ProjectService {
     return projectRepository.save(project); // save to DB
   }
 
-  // Import Projects (InputStream input)
+  /**
+   * Import projects from an input stream.
+   * @param input The input stream containing project data.
+   * @return The result of the import operation, including imported count and skipped entries.
+   * @throws IOException if an I/O error occurs while reading the input stream.
+  */
   public ImportResult importProjects(InputStream input) throws IOException {
     int importedCount = 0;
     List<SkippedEntry> skippedEntries = new ArrayList<>();
@@ -104,6 +124,8 @@ public class ProjectService {
         projectRepository.save(project); // save to DB
         importedCount++;
       }
+    } catch (IOException e) {
+      throw new IOException("Error reading input stream: " + e.getMessage());
     }
 
     ImportResult result = new ImportResult();
@@ -112,8 +134,14 @@ public class ProjectService {
     return result;
   }
 
-  // update project title; throws ProjectNotFoundException or ValidationException
-  public Project updateTitle(int id, String title) {
+  /**
+   * Update the title of a project.
+   * @param id The ID of the project to update.
+   * @param title The new title for the project.
+   * @return The updated project.
+   * @throws ValidationException if the new title is invalid or duplicate.
+  */
+  public Project updateTitle(int id, String title) throws ValidationException {
     Project project = getProjectById(id);
     String oldTitle = project.getTitle();
     project.setTitle(title);
@@ -124,7 +152,13 @@ public class ProjectService {
     return projectRepository.update(project);
   }
 
-  // update project description; throws ProjectNotFoundException or ValidationException
+  /**
+   * Update the description of a project.
+   * @param id The ID of the project to update.
+   * @param description The new description for the project.
+   * @return The updated project.
+   * @throws ValidationException if the new description is invalid.
+  */
   public Project updateDescription(int id, String description) {
     Project project = getProjectById(id);
     String oldDescription = project.getDescription();
@@ -136,7 +170,13 @@ public class ProjectService {
     return projectRepository.update(project);
   }
 
-  // update project tags from a comma-separated string; throws ProjectNotFoundException or ValidationException
+  /**
+   * Update the tags of a project.
+   * @param id The ID of the project to update.
+   * @param tags A comma-separated string of new tags for the project.
+   * @return The updated project.
+   * @throws ValidationException if no valid tags are provided.
+  */
   public Project updateTags(int id, String tags) {
     Project project = getProjectById(id);
     List<String> validTags = new ArrayList<>();
@@ -153,14 +193,23 @@ public class ProjectService {
     return projectRepository.update(project);
   }
 
-  // toggle archived state; throws ProjectNotFoundException
+  /**
+   * Toggle the archived state of a project.
+   * @param id The ID of the project to update.
+   * @return The updated project.
+  */
   public Project toggleArchive(int id) {
     Project project = getProjectById(id);
     project.setArchived(!project.isArchived());
     return projectRepository.update(project);
   }
 
-  // soft-delete project; throws ProjectNotFoundException or InvalidOperationException
+  /**
+   * Soft-delete a project.
+   * @param id The ID of the project to delete.
+   * @return The deleted project.
+   * @throws InvalidOperationException if the project is already deleted.
+  */
   public Project deleteProject(int id) {
     Project project = getProjectById(id);
     if (project.isDeleted()) {
@@ -170,7 +219,12 @@ public class ProjectService {
     return projectRepository.update(project);
   }
 
-  // restore a soft-deleted project; throws ProjectNotFoundException or InvalidOperationException
+  /**
+   * Restore a soft-deleted project.
+   * @param id The ID of the project to restore.
+   * @return The restored project.
+   * @throws InvalidOperationException if the project is not deleted.
+  */
   public Project restoreProject(int id) {
     Project project = getProjectById(id);
     if (!project.isDeleted()) {

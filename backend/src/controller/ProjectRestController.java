@@ -10,10 +10,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/* 
-  ProjectRestController
-  This class defines all REST API routes used by the DMS web UI. 
-  Note: All business logic seen in ProjectController.java is implemented in ProjectService.java for the REST API.
+/** 
+  * Defines all REST API routes used by the DMS web UI. 
+  * Depends on {@link ProjectService} for handling business logic and database interactions related to projects, 
+  * and on the {@link Project} model for representing project data in the API responses.
+  * @author Russell Alexander
 */
 @RestController
 // Base path for all routes in this controller is '/api/projects'
@@ -22,32 +23,51 @@ public class ProjectRestController {
 
   private final ProjectService projectService; // initialize ProjectService (essentially the "controller" used internally by the REST API)
 
-  // ProjectRestController constructor for dependency injection of ProjectService
+  /**
+   * Constructor to initialize the ProjectRestController with a ProjectService instance.
+   * @param projectService The ProjectService instance to be injected.
+   */
   public ProjectRestController(ProjectService projectService) {
     this.projectService = projectService;
   }
 
   // GET ROUTES
-  // '/api/projects' - Get all projects
+
+  /**
+   * Route handler for getting all projects.
+   * @return ResponseEntity with list of all projects and OK status
+  */
   @GetMapping
   public ResponseEntity<List<Project>> getAllProjects() {
     return ResponseEntity.ok(projectService.getAllProjects()); // Return OK with list of all projects
   }
 
-  // '/api/projects/{id}' - Get a project by ID
+  /**
+   * Route handler for getting a project by ID
+   * @param id The ID of the project to retrieve.
+   * @return ResponseEntity with the project and OK status
+  */
   @GetMapping("/{id}")
   public ResponseEntity<Project> getProjectById(@PathVariable int id) {
     return ResponseEntity.ok(projectService.getProjectById(id)); // Return OK with project
   }
 
   // POST ROUTES
-  // '/api/projects' - Add a new project with title provided in request body
+  /**
+   * Route handler for adding a new project
+   * @param body The request body containing the title of the project.
+   * @return ResponseEntity with the newly added project and CREATED status
+  */
   @PostMapping
   public ResponseEntity<Project> addProject(@RequestBody Map<String, String> body) {
     return ResponseEntity.status(HttpStatus.CREATED).body(projectService.addProject(body.get("title"))); // Return CREATED with new project
   }
 
-  // '/api/projects/import' - Import projects from uploaded file
+  /**
+   * Route handler for importing projects from an uploaded file.
+   * @param file The uploaded file containing project data.
+   * @return ResponseEntity with the import result and OK status
+  */
   @PostMapping("/import")
   public ResponseEntity<ImportResult> importProjects(@RequestParam("file") MultipartFile file) throws IOException {
     return ResponseEntity.ok(projectService.importProjects(file.getInputStream())); // Return OK with import result
@@ -55,37 +75,65 @@ public class ProjectRestController {
 
   // PUT/PATCH/DELETE ROUTES
   
+  /**
+   * Route handler for updating the title of a project by ID.
+   * @param id The ID of the project to update.
+   * @param body The request body containing the new title.
+   * @return ResponseEntity with the updated project and OK status
+  */
   @PutMapping("/{id}/title")
   // '/api/projects/{id}/title' - Update the title of a project by ID 
   public ResponseEntity<Project> updateTitle(@PathVariable int id, @RequestBody Map<String, String> body) {
     return ResponseEntity.ok(projectService.updateTitle(id, body.get("title"))); // Return OK with updated project
   }
 
-  // '/api/projects/{id}/description' - Update the description of a project by ID
+  /**
+   * Route handler for updating the description of a project by ID.
+   * @param id The ID of the project to update.
+   * @param body The request body containing the new description.
+   * @return ResponseEntity with the updated project and OK status
+  */
   @PutMapping("/{id}/description")
   public ResponseEntity<Project> updateDescription(@PathVariable int id, @RequestBody Map<String, String> body) {
     return ResponseEntity.ok(projectService.updateDescription(id, body.get("description"))); // Return OK with updated project
   }
 
-  // '/api/projects/{id}/tags' - Update the tags of a project by ID
+  /**
+   * Route handler for updating the tags of a project by ID.
+   * @param id The ID of the project to update.
+   * @param body The request body containing the new tags.
+   * @return ResponseEntity with the updated project and OK status
+  */
   @PutMapping("/{id}/tags")
   public ResponseEntity<Project> updateTags(@PathVariable int id, @RequestBody Map<String, String> body) {
     return ResponseEntity.ok(projectService.updateTags(id, body.get("tags"))); // Return OK with updated project
   }
 
-  // '/api/projects/{id}/archive' - Toggle the archive status of a project by ID
+  /**
+   * Route handler for toggling the archive status of a project by ID.
+   * @param id The ID of the project to update.
+   * @return ResponseEntity with the updated project and OK status
+  */
   @PatchMapping("/{id}/archive")
   public ResponseEntity<Project> toggleArchive(@PathVariable int id) {
     return ResponseEntity.ok(projectService.toggleArchive(id)); // Return OK with updated project
   }
 
-  // '/api/projects/{id}' - Delete a project by ID
+  /**
+   * Route handler for deleting a project by ID.
+   * @param id The ID of the project to delete.
+   * @return ResponseEntity with the deleted project and OK status
+  */
   @DeleteMapping("/{id}")
   public ResponseEntity<Project> deleteProject(@PathVariable int id) {
     return ResponseEntity.ok(projectService.deleteProject(id)); // Return OK with deleted project (soft-deleted, not removed from list)
   }
 
-  // '/api/projects/{id}/restore' - Restore a soft-deleted project by ID
+  /**
+   * Route handler for restoring a soft-deleted project by ID.
+   * @param id The ID of the project to restore.
+   * @return ResponseEntity with the restored project and OK status
+  */
   @PostMapping("/{id}/restore")
   public ResponseEntity<Project> restoreProject(@PathVariable int id) {
     return ResponseEntity.ok(projectService.restoreProject(id)); // Return OK with restored project

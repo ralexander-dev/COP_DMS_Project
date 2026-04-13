@@ -1,5 +1,4 @@
 package controller;
-
 import model.Project;
 import validator.Validator;
 import view.MenuView;
@@ -10,9 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/*
-  ProjectController class
-  This class contains all business logic related to the DMS application.
+/**
+ * Controller for handling user interactions and business logic related to projects in the DMS application.
+ * Depends on {@link MenuView} for user interaction and {@link Validator} for validating project data before 
+ * it is stored in the database.
+ * @author Russell Alexander
 */
 public class ProjectController {
   public MenuView view;
@@ -23,7 +24,10 @@ public class ProjectController {
   // ! This variable is used to simulate ID auto-increment that will be implemented in the database.
   private int nextId;
 
-  // constructor to intialize the controller with the user interface object
+  /**
+   * Constructs a ProjectController with the specified MenuView.
+   * @param view The MenuView object for user interaction.
+  */
   public ProjectController(MenuView view) {
     this.view = view;
     this.projects = new ArrayList<>();
@@ -31,7 +35,9 @@ public class ProjectController {
     this.nextId = 1; // Initialize nextId to 1
   }
 
-  // main application loop
+  /**
+   * Main application loop.
+  */
   public void run() {
     boolean exit = false;
     while (!exit) {
@@ -51,7 +57,10 @@ public class ProjectController {
     }
   }
 
-  // method to add a new project
+  /**
+   * Adds a new project to the list of projects (CLI application only).
+   * @return true if the project was added successfully, false otherwise.
+  */
   public boolean addProject() {
     view.displayInfo("Add a new project:");
     
@@ -70,7 +79,10 @@ public class ProjectController {
     return true;
   }
 
-  // method to search for a project by its ID
+  /**
+   * Searches for a project by its ID.
+   * @param id The ID of the project to search for.
+  */
   public void searchProjectById(int id) {
     // search for the project with the given ID
     Optional<Project> projectOpt = projects.stream()
@@ -85,7 +97,10 @@ public class ProjectController {
     }
   }
 
-  // method to load projects from file
+  /**
+   * Loads projects from a file specified by the user.
+   * @return true if the projects were loaded successfully, false otherwise.
+  */
   public boolean loadProjectsFromFile() {
     view.displayInfo("Enter the file path to load projects from:");
     String path = view.recieveFilePath(); // recieve file path from the user
@@ -164,7 +179,9 @@ public class ProjectController {
     return true;
   }
 
-  // method to update a project
+  /**
+   * Updates a project based on user input.
+  */
   private void updateProject() {
     boolean exit = false;
     while (!exit) {
@@ -179,7 +196,10 @@ public class ProjectController {
     }
   }
 
-  // update a project title
+  /**
+   * Updates the title of a project based on user input.
+   * @return true if the project title was updated successfully, false otherwise.
+  */
   public boolean updateProjectTitle() {
     view.displayInfo("Enter the ID of the project you want to update:");
     int id = view.recieveId(); // recieve ID of project from user
@@ -210,7 +230,10 @@ public class ProjectController {
     return true;
   }
 
-  // update a project description
+  /**
+   * Updates the description of a project based on user input.
+   * @return true if the project description was updated successfully, false otherwise.
+  */
   public boolean updateProjectDescription() {
     view.displayInfo("Enter the ID of the project you want to update:");
     int id = view.recieveId(); // recieve the ID of the project to update
@@ -241,7 +264,10 @@ public class ProjectController {
     return true;
   }
 
-  // update a projects tags
+  /**
+   * Updates the tags of a project based on user input.
+   * @return true if the project tags were updated successfully, false otherwise.
+  */
   public boolean updateProjectTags() {
     view.displayInfo("Enter the ID of the project you want to update:");
     int id = view.recieveId(); // recieve the ID of the project to update
@@ -281,7 +307,10 @@ public class ProjectController {
     return true;
   }
 
-  // method to toggle a projects archived status
+  /**
+   * Toggles the archived status of a project based on user input.
+   * @return true if the project archived status was toggled successfully, false otherwise.
+  */
   public boolean toggleArchiveProject() {
     view.displayInfo("Enter the ID of the project you want to archive/unarchive:");
     int id = view.recieveId(); // recieve the ID of the project to archive/unarchive
@@ -303,7 +332,10 @@ public class ProjectController {
     return true;
   }
 
-  // method to delete a project  (sets deleted status to true, simulating a soft delete)
+  /**
+   * Deletes a project by setting its deleted status to true (soft delete).
+   * @return true if the project was deleted successfully, false otherwise.
+  */
   public boolean deleteProject() {
     view.displayInfo("Enter the ID of the project you want to delete:");
     int id = view.recieveId(); // recieve the ID of the project to delete
@@ -329,7 +361,10 @@ public class ProjectController {
     return true;
   }
 
-  // method to restore a deleted project (sets deleted status to false)
+  /**
+   * Restores a deleted project by setting its deleted status to false.
+   * @return true if the project was restored successfully, false otherwise.
+  */
   public boolean restoreProject() { 
     view.displayInfo("Enter the ID of the project you want to restore:");
     int id = view.recieveId(); // recieve the ID of the project to restore

@@ -1,12 +1,12 @@
 package view;
-
 import model.Project;
 import java.util.List;
 import java.util.Scanner;
-/*
-  MenuView class
-  Defines the view component of the DMS application, responsible for displaying the menu and receiving user input. 
-  It provides methods to display information, errors, and project details, as well as methods to receive input for project attributes and menu choices.
+
+/**
+  * View class responsible for displaying the menu and receiving user input.
+  * Depends on the {@link Project} model to receive project data to display.
+  * @author Russell Alexander
 */
 public class MenuView {
   private Scanner scanner;
@@ -14,12 +14,17 @@ public class MenuView {
   private String errorMessage = "\u001B[31m %s \u001B[0m";
   private String infoMessage = "\u001B[32m %s \u001B[0m";
 
-  // constructor to initialize the view with a scanner for user input
+  /**
+    * Constructor, initializes the Scanner for user input.
+  */
   public MenuView() {
     this.scanner = new Scanner(System.in);
   }
 
-  // method to display the main menu and receive the user's choice
+  /**
+    * Method to display the main menu and receive the user's choice.
+    * @return The user's menu choice as an integer.
+  */
   public int mainMenu() {
     System.out.println(separator);
     System.out.println(infoMessage.formatted("Main Menu"));
@@ -43,13 +48,20 @@ public class MenuView {
     }
   }
 
-  // receive the project title from the user
+  /**
+    * Prompt and recieve project title from the user.
+    * @return The project title entered by the user.
+  */
   public String recieveTitle() {
     System.out.print("Enter project title: ");
     return scanner.nextLine();
   }
 
-  // receive the project ID from the user
+  /**
+    * Prompt and recieve project ID from the user.
+    * @return The project ID entered by the user, or -1 if the input is invalid.
+
+  */
   public int recieveId() {
     System.out.print("Enter project ID: ");
     try {
@@ -60,36 +72,54 @@ public class MenuView {
     }
   }
 
-  // recieve file path from the user
+  /**
+    * Prompt and recieve file path from the user.
+    * @return The file path entered by the user.
+  */
   public String recieveFilePath() {
     System.out.print("Enter file path: ");
     return scanner.nextLine();
   }
 
-  // recieve description from the user
+  /**
+    * Prompt and recieve project description from the user.
+    * @return The project description entered by the user.
+  */
   public String recieveDescription() {
     System.out.print("Enter project description: ");
     return scanner.nextLine();
   }
 
-  // recieve tags from the user 
+  /**
+    * Prompt and recieve project tags from the user.
+    * @return The project tags entered by the user.
+  */
   public String recieveTags() {
     System.out.print("Enter project tags (comma separated): ");
     String input = scanner.nextLine();
     return input.trim();
   }
 
-  // display info message
+  /**
+    * Display an informational message to the user.
+    * @param message The message to display.
+  */
   public void displayInfo(String message) {
     System.out.println(infoMessage.formatted(message));
   }
 
-  // display error message
+  /**
+    * Display an error message to the user.
+    * @param message The message to display.
+  */
   public void displayError(String message) {
     System.out.println(errorMessage.formatted(message));
   }
 
-  // display all projects
+  /**
+    * Display all projects to the user.
+    * @param projects The list of projects to display.
+  */
   public void displayAllProjects(List<Project> projects) {
     if (projects.isEmpty()) {
       System.out.println(infoMessage.formatted("No projects found."));
@@ -104,7 +134,10 @@ public class MenuView {
     }
   }
 
-  // display update menu and return choice
+  /**
+    * Display the update menu and return the user's choice.
+    * @return The user's menu choice as an integer. 
+  */
   public int updateMenu() {
     System.out.println(separator);
     System.out.println(infoMessage.formatted("Update Project"));
